@@ -4,6 +4,9 @@ using Microsoft.EntityFrameworkCore;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
+var storagePath = builder.Configuration.GetValue<string>("Storage:Path");
+Directory.CreateDirectory(storagePath);
+
 string connectionString = builder.Configuration.GetConnectionString("Database");
 
 // Add services to the container.

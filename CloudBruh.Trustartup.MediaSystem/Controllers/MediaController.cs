@@ -10,9 +10,14 @@ public class MediaController : ControllerBase
 {
     private readonly MediaContext _context;
 
-    public MediaController(MediaContext context)
+    private readonly IConfiguration _configuration;
+
+    private readonly string[] _allowedExtensions = {".png", ".jpg"};
+
+    public MediaController(MediaContext context, IConfiguration configuration)
     {
         _context = context;
+        _configuration = configuration;
     }
 
     // GET: api/Media
@@ -35,16 +40,59 @@ public class MediaController : ControllerBase
 
         return media;
     }
-
-    // PUT: api/Media/5
-    [HttpPut("{id:long}")]
-    public async Task<IActionResult> PutMedia(long id, Media media)
+    
+    // GET: api/Media/5/download
+    [HttpGet("{id:long}/download")]
+    public async Task<IActionResult> DownloadMedia(long id)
     {
-        if (id != media.Id)
+        Media? media = await _context.Media.FindAsync(id);
+
+        if (media == null)
         {
-            return BadRequest();
+            return NotFound();
         }
 
+        string? filename = media.Link;
+        if (filename == null)
+        {
+            return NotFound();
+        }
+        
+        string path = Path.Combine(_configuration.GetValue<string>("Storage:Path"), filename);
+
+        return File(await System.IO.File.ReadAllBytesAsync(path), "image/png");
+    }
+
+    // POST: api/Media/5/upload
+    [HttpPost("{id:long}/upload")]
+    public async Task<IActionResult> UploadMedia(IFormFile file, long id)
+    {
+        Media? media = await _context.Media.FindAsync(id);
+        if (media == null)
+        {
+            return NotFound();
+        }
+        
+        string extension = Path.GetExtension(file.FileName).ToLowerInvariant();
+        if (string.IsNullOrEmpty(extension) || !_allowedExtensions.Contains(extension))
+        {
+            return ValidationProblem("Invalid file extension.");
+        }
+        if (file.Length > 1024*1024)
+        {
+            return ValidationProblem("File is too large.");
+        }
+
+        string filename = Path.ChangeExtension(Guid.NewGuid().ToString(), extension);
+        string path = Path.Combine(_configuration.GetValue<string>("Storage:Path"), filename);
+
+        await using (FileStream stream = System.IO.File.Create(path))
+        {
+            await file.CopyToAsync(stream);
+        }
+        
+        media.Link = filename;
+        
         _context.Entry(media).State = EntityState.Modified;
 
         try
@@ -66,7 +114,7 @@ public class MediaController : ControllerBase
 
     // POST: api/Media
     [HttpPost]
-    public async Task<ActionResult<Media>> PostMedia(Media media)
+    public async Task<ActionResult<Media>> PostMedia([Bind("UserId, IsPublic, Type")] Media media)
     {
         _context.Media.Add(media);
         await _context.SaveChangesAsync();
