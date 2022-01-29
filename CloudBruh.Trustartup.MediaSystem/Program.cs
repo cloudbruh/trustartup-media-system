@@ -13,7 +13,7 @@ string connectionString = builder.Configuration.GetConnectionString("Database");
 
 builder.Services.AddControllers()
     .AddJsonOptions(options => options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
-builder.Services.AddDbContext<MediaContext>(options => options.UseInMemoryDatabase("Media"));
+builder.Services.AddDbContext<MediaContext>(options => options.UseNpgsql(connectionString));
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();

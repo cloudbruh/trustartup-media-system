@@ -13,7 +13,7 @@ public class MediaContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        // modelBuilder.Entity<Media>().Property(media => media.CreatedAt).HasDefaultValueSql("now()");
-        // modelBuilder.Entity<Media>().Property(media => media.UpdatedAt).HasDefaultValueSql("now()");
+        modelBuilder.Entity<Media>().Property(media => media.CreatedAt).HasDefaultValueSql("now()");
+        modelBuilder.Entity<Media>().Property(media => media.UpdatedAt).HasDefaultValueSql("now()");
     }
 }

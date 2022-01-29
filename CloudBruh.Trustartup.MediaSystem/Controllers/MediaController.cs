@@ -60,7 +60,7 @@ public class MediaController : ControllerBase
         
         string path = Path.Combine(_configuration.GetValue<string>("Storage:Path"), filename);
 
-        return File(await System.IO.File.ReadAllBytesAsync(path), "image/png");
+        return File(await System.IO.File.ReadAllBytesAsync(path), media.MimeType);
     }
 
     // POST: api/Media/5/upload
@@ -114,7 +114,7 @@ public class MediaController : ControllerBase
 
     // POST: api/Media
     [HttpPost]
-    public async Task<ActionResult<Media>> PostMedia([Bind("UserId, IsPublic, Type")] Media media)
+    public async Task<ActionResult<Media>> PostMedia([Bind("UserId, IsPublic, Type, MimeType")] Media media)
     {
         _context.Media.Add(media);
         await _context.SaveChangesAsync();
