@@ -1,0 +1,12 @@
+services:
+  media-system:
+    build: .
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__Database=host=media-system-db;database=postgres;user id=postgres;password=postgres;
+    ports:
+      - "8083:80"
+  media-system-db:
+    image: "postgres:14.1-alpine"
+    environment:
+      - POSTGRES_PASSWORD=postgres
