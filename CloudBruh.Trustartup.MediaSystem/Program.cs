@@ -1,5 +1,6 @@
 using System.Text.Json.Serialization;
 using CloudBruh.Trustartup.MediaSystem.Models;
+using CloudBruh.Trustartup.MediaSystem.Services;
 using Microsoft.EntityFrameworkCore;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
@@ -14,6 +15,8 @@ string connectionString = builder.Configuration.GetConnectionString("Database");
 builder.Services.AddControllers()
     .AddJsonOptions(options => options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 builder.Services.AddDbContext<MediaContext>(options => options.UseNpgsql(connectionString));
+builder.Services.AddScoped<MediaFileService>();
+
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();

@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using CloudBruh.Trustartup.MediaSystem.Models;
+using CloudBruh.Trustartup.MediaSystem.Services;
 
 namespace CloudBruh.Trustartup.MediaSystem.Controllers;
 
@@ -9,15 +10,16 @@ namespace CloudBruh.Trustartup.MediaSystem.Controllers;
 public class MediaController : ControllerBase
 {
     private readonly MediaContext _context;
-
     private readonly IConfiguration _configuration;
+    private readonly MediaFileService _mediaFileService;
 
     private readonly string[] _allowedExtensions = {".png", ".jpg"};
 
-    public MediaController(MediaContext context, IConfiguration configuration)
+    public MediaController(MediaContext context, IConfiguration configuration, MediaFileService mediaFileService)
     {
         _context = context;
         _configuration = configuration;
+        _mediaFileService = mediaFileService;
     }
 
     // GET: api/Media
@@ -58,9 +60,21 @@ public class MediaController : ControllerBase
             return NotFound();
         }
         
-        string path = Path.Combine(_configuration.GetValue<string>("Storage:Path"), filename);
+        return File(await _mediaFileService.Download(filename), media.MimeType);
+    }
 
-        return File(await System.IO.File.ReadAllBytesAsync(path), media.MimeType);
+    // GET: api/Media/file/d71efc75-9580-423b-b34e-b0db50c4572b.png
+    [HttpGet("file/{filename}")]
+    public async Task<ActionResult<Media>> GetMedia(string filename)
+    {
+        Media? media = await _context.Media.Where(media1 => media1.Link == filename).FirstOrDefaultAsync();
+
+        if (media == null)
+        {
+            return NotFound();
+        }
+
+        return media;
     }
 
     // POST: api/Media/5/upload
@@ -73,22 +87,14 @@ public class MediaController : ControllerBase
             return NotFound();
         }
         
-        string extension = Path.GetExtension(file.FileName).ToLowerInvariant();
-        if (string.IsNullOrEmpty(extension) || !_allowedExtensions.Contains(extension))
+        string filename;
+        try
         {
-            return ValidationProblem("Invalid file extension.");
+            filename = await _mediaFileService.Save(file);
         }
-        if (file.Length > 1024*1024)
+        catch (ArgumentException e)
         {
-            return ValidationProblem("File is too large.");
-        }
-
-        string filename = Path.ChangeExtension(Guid.NewGuid().ToString(), extension);
-        string path = Path.Combine(_configuration.GetValue<string>("Storage:Path"), filename);
-
-        await using (FileStream stream = System.IO.File.Create(path))
-        {
-            await file.CopyToAsync(stream);
+            return ValidationProblem(e.Message);
         }
         
         media.Link = filename;
@@ -109,7 +115,7 @@ public class MediaController : ControllerBase
             throw;
         }
 
-        return NoContent();
+        return CreatedAtAction("GetMedia", new { id = media.Id }, media);
     }
 
     // POST: api/Media
