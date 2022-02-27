@@ -79,7 +79,7 @@ public class MediaController : ControllerBase
 
     // POST: api/Media/5/upload
     [HttpPost("{id:long}/upload")]
-    public async Task<IActionResult> UploadMedia(IFormFile file, long id)
+    public async Task<IActionResult> UploadMedia([FromForm] IFormFile file, long id)
     {
         Media? media = await _context.Media.FindAsync(id);
         if (media == null)

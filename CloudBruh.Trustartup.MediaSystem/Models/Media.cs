@@ -13,7 +13,6 @@ public class Media
     public long UserId { get; set; }
     public bool IsPublic { get; set; }
     public string? Link { get; set; }
-    public MediaType Type { get; set; }
     public string MimeType { get; set; }
     [DatabaseGenerated(DatabaseGeneratedOption.Computed)]
     public DateTime UpdatedAt { get; set; }
