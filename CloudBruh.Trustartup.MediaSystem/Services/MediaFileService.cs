@@ -12,7 +12,7 @@ public class MediaFileService
 
     public async Task<string> Save(IFormFile file)
     {
-        if (file.Length > 1024*1024)
+        if (file.Length > 5*1024*1024)
         {
             throw new ArgumentException("File is too large.");
         }
