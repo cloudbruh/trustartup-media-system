@@ -12,5 +12,8 @@ services:
     image: "postgres:14.1-alpine"
     environment:
       - POSTGRES_PASSWORD=postgres
+    volumes:
+      - media-system-db:/var/lib/postgresql/data
 volumes: 
   media:
+  media-system-db:
