@@ -19,7 +19,7 @@
 
 ## Технологии
 
--   .NET (C#)
+-   ASP.NET (C#)
 -   PostgreSQL
 -   Docker
 
